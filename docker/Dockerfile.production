@@ -1,0 +1,19 @@
+FROM node:14-alpine
+
+
+RUN  adduser -S faucet -G users && \
+     chown faucet:users -R /bin
+
+USER faucet
+
+WORKDIR /home/faucet
+
+COPY --chown=faucet:users . . 
+
+RUN yarn install
+
+#RUN NODE_ENV=production yarn build
+
+#RUN  yarn prod
+
+CMD [ "yarn", "start" ]
