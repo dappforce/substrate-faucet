@@ -1,0 +1,52 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: faucet-testnet
+  namespace: faucet
+  labels:
+    app: faucet-testnet
+spec:
+  replicas: 1
+  template:
+    metadata:
+      name: faucet-testnet
+      annotations:
+        vault.hashicorp.com/agent-inject: 'true'
+        vault.hashicorp.com/role: 'faucet-testnet'
+        vault.hashicorp.com/agent-inject-secret-env: 'secrets/faucet-testnet/config'
+        vault.hashicorp.com/secret-volume-path: "/tmp/vault"
+        vault.hashicorp.com/agent-inject-template-env: |
+          {{ with secret "secrets/faucet-testnet/config" -}}
+          BOT_TOKEN={{ .Data.data.BOT_TOKEN }}
+          MNEMONIC={{ .Data.data.MNEMONIC }}
+          WS={{ .Data.data.WS }}
+          NODE_ENV={{ .Data.data.NODE_ENV }}
+          {{- end }}
+
+      labels:
+        app: faucet-testnet
+    spec:
+      serviceAccountName: faucet-testnet
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchExpressions:
+              - key: app
+                operator: In
+                values:
+                - faucet-testnet
+            topologyKey: kubernetes.io/hostname
+      containers:
+        - name: faucet-testnet
+          image: <IMAGE>
+          args:
+            ['sh', '-c', 'cp /tmp/vault/env /home/faucet/.env && yarn prod && yarn start']
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8080
+                
+      restartPolicy: Always
+  selector:
+    matchLabels:
+      app: faucet-testnet
