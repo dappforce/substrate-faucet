@@ -11,5 +11,5 @@ module.exports = {
   prefix: "!", // prefix for run command
   command: 'drip', // commande for run faucet action
   amount: 10,
-  limit: 24, // The time limit for sending requests is in hours.
+  limit: 1, // The time limit for sending requests is in hours.
 };
